@@ -24,8 +24,7 @@ struct ContactNode{
 };
 
 struct ContactNodeHeads{
-    struct ContactNode * _sortFnameHead, * _sortLnameHead , * _sortTelHead, * _sortCellHead,
-                       * _unortedHead;
+    struct ContactNode * _sortFnameHead, * _sortLnameHead , * _sortTelHead, * _sortCellHead;
 };
 // not global!!
 struct Contact A[TOTAL_CONTACTS];
@@ -35,9 +34,28 @@ void getline_and_copy_string(char* dest, size_t max_len);
 char get_char_only();
 void print_titles(int y_offset);
 void print_list(int y_offset);
+int compByFname(const struct Contact* firstContact,const struct Contact* secondContact);
+int compByLname(const struct Contact* firstContact,const struct Contact* secondContact);
+int compByTel(const struct Contact* firstContact,const struct Contact* secondContact);
+int compByCell(const struct Contact* firstContact,const struct Contact* secondContact);
+struct Contact* createContact();
+struct ContactNode* createContactNode(const struct Contact* newContact);
+void addToLinkedLists(struct ContactNodeHeads * myContacts, struct Contact* newContact);
+void insertContactToLists(struct ContactNode** contactNode, const struct Contact* newContact,
+                   int (*compFunc)(const struct Contact*, const struct Contact*));
+void insert(struct ContactNodeHeads* myContacts);
+void clearContactsLists(struct ContactNodeHeads* myContacts);
+void clearContacts(struct ContactNode *contactNodeHead);
+void clearContactsNodes(struct ContactNode *contactNodeHead);
+void delete(struct ContactNodeHeads*, struct Contact*);
+void showSort(const struct ContactNodeHeads* myContacts);
+void showContactList(const struct ContactNode * contactNodeHead);
+void list(int y_offset);
+
+
 void clrscr(void);
 void gotoxy(int x, int y);
-void insert(void);
+
 void delet(void);
 void edit(void);
 void search(void);
@@ -45,7 +63,7 @@ void searchf(void);
 void searchl(void);
 void searchp(void);
 void searchc(void);
-void list(int y_offset);
+
 void sort(void);
 void sortf(void);
 void sortl(void);
@@ -83,7 +101,7 @@ int main()
         // we should empty buffer here
         switch(n) {
             case '1':
-                insert();
+                insert(&myContacts);
                 break;
             case '2':
                 delet();
@@ -114,12 +132,48 @@ int main()
                 break;
         }//End of swicth
     }
+    clearContactsLists(&myContacts);
     return 0;
     /**/
 }//End of main function!
 
-void insert(void)
-{
+//void insert(void)
+//{
+//    char ans='y';
+//    clrscr();
+//    printf("\nPhone Book12<::>Insert Contacts");
+//    printf("\n--------------------------------------------------------------------------------");
+//
+//
+//    while(ans=='y'){
+//        if(last == TOTAL_CONTACTS) {
+//            printf("Too much contacts. The limit is %d.\n", TOTAL_CONTACTS);
+//            break;
+//        }
+//        else{
+//            printf("\n\nData of Contact %2.2d{\n",last+1);
+//            printf("\n\t  1-F.Name: ");
+//            getline_and_copy_string(A[last].fname, MAX_FIRST_LAST_SIZE);
+//
+//            printf("\t  2-L.Name: ");
+//            getline_and_copy_string(A[last].lname, MAX_FIRST_LAST_SIZE);
+//
+//            printf("\t  3-Tele.P: ");
+//            getline_and_copy_string(A[last].telep, MAX_NUMBER_LEN);
+//
+//            printf("\t  4-Cell.P: ");
+//            getline_and_copy_string(A[last].cellp, MAX_NUMBER_LEN);
+//
+//            printf("\n|-->Data Recorded!}");
+//            printf("\n\t\t\tNext Contact?(y/n) Answer:");
+//            ans = get_char_only();
+//            last++;
+//        }
+//    }
+//    printf("\n\nYou have inserted ( %d ) contact!\nPress a key to return main page & continue program|-->",last);
+//    get_char_only();
+//}
+void insert (struct ContactNodeHeads* myContacts){
     char ans='y';
     clrscr();
     printf("\nPhone Book12<::>Insert Contacts");
@@ -127,34 +181,100 @@ void insert(void)
 
 
     while(ans=='y'){
-        if(last == TOTAL_CONTACTS) {
-            printf("Too much contacts. The limit is %d.\n", TOTAL_CONTACTS);
-            break;
-        }
-        else{
-            printf("\n\nData of Contact %2.2d{\n",last+1);
-            printf("\n\t  1-F.Name: ");
-            getline_and_copy_string(A[last].fname, MAX_FIRST_LAST_SIZE);
-
-            printf("\t  2-L.Name: ");
-            getline_and_copy_string(A[last].lname, MAX_FIRST_LAST_SIZE);
-
-            printf("\t  3-Tele.P: ");
-            getline_and_copy_string(A[last].telep, MAX_NUMBER_LEN);
-
-            printf("\t  4-Cell.P: ");
-            getline_and_copy_string(A[last].cellp, MAX_NUMBER_LEN);
-
-            printf("\n|-->Data Recorded!}");
-            printf("\n\t\t\tNext Contact?(y/n) Answer:");
-            ans = get_char_only();
-            last++;
-        }
+        struct Contact* newContact = createContact();
+        addToLinkedLists(myContacts, newContact);
+        printf("\n|-->Data Recorded!}");
+        printf("\n\t\t\tNext Contact?(y/n) Answer:");
+        ans = get_char_only();
     }
-    printf("\n\nYou have inserted ( %d ) contact!\nPress a key to return main page & continue program|-->",last);
-    get_char_only();
 }
 
+struct Contact* createContact(){
+    struct Contact* newContact = (struct Contact *) malloc(sizeof(struct Contact));
+    if (!newContact){
+        printf("Fail to create new contact\n");
+        exit (EXIT_FAILURE);
+    }
+    printf("\n\nData of Contact %2.2d{\n",last+1);
+    printf("\n\t  1-F.Name: ");
+    getline_and_copy_string(newContact->fname, MAX_FIRST_LAST_SIZE);
+
+    printf("\t  2-L.Name: ");
+    getline_and_copy_string(newContact->lname, MAX_FIRST_LAST_SIZE);
+
+    printf("\t  3-Tele.P: ");
+    getline_and_copy_string(newContact->telep, MAX_NUMBER_LEN);
+
+    printf("\t  4-Cell.P: ");
+    getline_and_copy_string(newContact->cellp, MAX_NUMBER_LEN);
+    
+    return newContact;
+}
+
+struct ContactNode* createContactNode(const struct Contact* newContact){
+    struct ContactNode * contactNode = (struct ContactNode *) malloc(sizeof(struct ContactNode));
+    if (!contactNode){
+        printf("Fail to create new contact\n");
+        exit (EXIT_FAILURE);
+    }
+    contactNode->_data = (struct Contact*)newContact;
+    contactNode->_next = NULL;
+    return contactNode;
+}
+void addToLinkedLists(struct ContactNodeHeads * myContacts, struct Contact* newContact){
+    insertContactToLists(&(myContacts->_sortFnameHead), newContact, compByFname);
+    insertContactToLists(&(myContacts->_sortLnameHead), newContact, compByLname);
+    insertContactToLists(&(myContacts->_sortTelHead), newContact, compByTel);
+    insertContactToLists(&(myContacts->_sortCellHead), newContact, compByCell);
+}
+int compByFname(const struct Contact* firstContact,const struct Contact* secondContact){
+    return strcmp(firstContact->fname, secondContact->fname);
+}
+int compByLname(const struct Contact* firstContact,const struct Contact* secondContact){
+    return strcmp(firstContact->lname, secondContact->lname);
+}
+int compByTel(const struct Contact* firstContact, const struct Contact* secondContact){
+    return strcmp(firstContact->telep, secondContact->telep);
+}
+int compByCell(const struct Contact* firstContact, const struct Contact* secondContact){
+    return strcmp(firstContact->cellp, secondContact->cellp);
+}
+
+void insertContactToLists(struct ContactNode** p2contactNodeHead, const struct Contact* newContact,
+                   int (*compFunc)(const struct Contact*,const struct Contact*)){
+    struct ContactNode * newContactNode = createContactNode(newContact);
+    if ((*p2contactNodeHead) == NULL)
+        *p2contactNodeHead = newContactNode;
+
+    else{
+        //struct ContactNode* tempContactNode = contactNodeHead;
+        //for 6
+        for(;(*p2contactNodeHead)!= NULL && compFunc (newContact, (*p2contactNodeHead)->_data) > 0 ;
+             p2contactNodeHead = &((*p2contactNodeHead)->_next));
+        newContactNode->_next = (*p2contactNodeHead);
+        (*p2contactNodeHead) = newContactNode;
+    }
+
+}
+void clearContactsLists(struct ContactNodeHeads* myContacts){
+
+}
+void clearContacts(struct ContactNode *contactNodeHead){
+
+}
+void clearContactsNodes(struct ContactNode *contactNodeHead){
+
+}
+
+void delete(struct ContactNodeHeads*, struct Contact*){
+
+}
+void showSort(const struct ContactNodeHeads* myContacts){
+
+}
+void showContactList(const struct ContactNode * contactNodeHead){
+
+}
 void delet(void)
 {
     char dfname_string[MAX_FIRST_LAST_SIZE], dlname_string[MAX_FIRST_LAST_SIZE];
