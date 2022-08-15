@@ -46,8 +46,10 @@ void insertContactToLists(struct ContactNode** contactNode, const struct Contact
 void insert(struct ContactNodeHeads* myContacts);
 void clearContactsLists(struct ContactNodeHeads* myContacts);
 void clearContacts(struct ContactNode *contactNodeHead);
-void clearContactsNodes(struct ContactNode *contactNodeHead);
-void delete(struct ContactNodeHeads*, struct Contact*);
+void clearContactsNodes(struct ContactNode **p2contactNodeHead);
+void delete(struct ContactNodeHeads*);
+void deleteContact(struct ContactNodeHeads* myContacts, struct Contact* delContact);
+void deleteContactNodesFromList(struct ContactNode **p2contactNodeHead, struct Contact* delContact);
 void showSort(const struct ContactNodeHeads* myContacts);
 void showContactList(const struct ContactNode * contactNodeHead);
 void list(int y_offset);
@@ -178,10 +180,10 @@ void insert (struct ContactNodeHeads* myContacts){
     clrscr();
     printf("\nPhone Book12<::>Insert Contacts");
     printf("\n--------------------------------------------------------------------------------");
-
+    struct Contact* newContact = NULL;
 
     while(ans=='y'){
-        struct Contact* newContact = createContact();
+        newContact = createContact();
         addToLinkedLists(myContacts, newContact);
         printf("\n|-->Data Recorded!}");
         printf("\n\t\t\tNext Contact?(y/n) Answer:");
@@ -257,29 +259,34 @@ void insertContactToLists(struct ContactNode** p2contactNodeHead, const struct C
 
 }
 void clearContactsLists(struct ContactNodeHeads* myContacts){
-
+    clearContacts(myContacts->_sortCellHead);
+    clearContactsNodes(&(myContacts->_sortCellHead));
+    clearContactsNodes(&(myContacts->_sortTelHead));
+    clearContactsNodes(&(myContacts->_sortFnameHead));
+    clearContactsNodes(&(myContacts->_sortLnameHead));
 }
 void clearContacts(struct ContactNode *contactNodeHead){
+    for (struct ContactNode* tempHead = contactNodeHead; tempHead; tempHead = tempHead->_next){
+        free(tempHead->_data);
+        tempHead->_data = NULL;
+    }
 
 }
-void clearContactsNodes(struct ContactNode *contactNodeHead){
-
+void clearContactsNodes(struct ContactNode **p2contactNodeHead){
+    for(struct ContactNode ** tempP2Head = p2contactNodeHead;
+        *p2contactNodeHead;
+        p2contactNodeHead = tempP2Head) {
+        tempP2Head = &((*tempP2Head)->_next);
+        free(*p2contactNodeHead);
+        *p2contactNodeHead = NULL;
+    }
 }
 
-void delete(struct ContactNodeHeads*, struct Contact*){
-
-}
-void showSort(const struct ContactNodeHeads* myContacts){
-
-}
-void showContactList(const struct ContactNode * contactNodeHead){
-
-}
-void delet(void)
-{
+void delete(struct ContactNodeHeads* myContacts){
     char dfname_string[MAX_FIRST_LAST_SIZE], dlname_string[MAX_FIRST_LAST_SIZE];
-    register int i,j,find=0;
     char ch;
+    struct ContactNode* tempHead = NULL;
+    register int i = 1, find = 0;
     clrscr();
     printf("\nPhone Book12<::>Delete Contacts");
     printf("\n--------------------------------------------------------------------------------");
@@ -290,19 +297,18 @@ void delet(void)
     printf("\n  ::Enter last name: ");
     getline_and_copy_string(dlname_string, MAX_FIRST_LAST_SIZE);
 
-    for (i = 0; i < last; i++) {
-        if (strcmp (dfname_string, A[i].fname) == 0 && strcmp (dlname_string, A[i].lname) == 0 ) {
+    for (tempHead = myContacts->_sortFnameHead; tempHead ; tempHead = tempHead->_next, i++) {
+        if (strcmp(dfname_string, tempHead->_data->fname) == 0 &&
+            strcmp(dlname_string, tempHead->_data->lname) == 0) {
 
             printf("\nContact was found! Details:");
-            printf("\n\nCantact %2.2d{",i+1);
-            printf("\n\t   F.Name:%s\n\t   L.name:%s\n\t   Tele.P:%s\n\t   Cell.P:%s\n\t   }",A[i].fname,A[i].lname,A[i].telep,A[i].cellp);
+            printf("\n\nCantact %2.2d{", i + 1);
+            printf("\n\t   F.Name:%s\n\t   L.name:%s\n\t   Tele.P:%s\n\t   Cell.P:%s\n\t   }",
+                   tempHead->_data->fname, tempHead->_data->lname, tempHead->_data->telep, tempHead->_data->cellp);
             printf("\n\nAre you sure you want to delete this contact?(y/n)");
             ch = get_char_only();
-            if(ch == 'y'){
-                for(j = i ; j + 1 < last ; j++)
-                    A[j] = A[j+1];
-
-                last--;
+            if (ch == 'y') {
+                deleteContact(myContacts, tempHead->_data);
                 find = 1;
                 break;
             }
@@ -314,7 +320,63 @@ void delet(void)
         printf("\t\t\n<<Target contact was successfully deleted from list!>>");
     printf("\n\n\nPress a key to return main page & continue program|-->");
     get_char_only();
+
 }
+
+void deleteContact(struct ContactNodeHeads* myContacts, struct Contact* delContact){
+    deleteContactNodesFromList(&(myContacts->_sortCellHead), delContact);
+    deleteContactNodesFromList(&(myContacts->_sortTelHead), delContact);
+    deleteContactNodesFromList(&(myContacts->_sortFnameHead), delContact);
+    deleteContactNodesFromList(&(myContacts->_sortLnameHead), delContact);
+    free(delContact);
+
+}
+void deleteContactNodesFromList(struct ContactNode **p2contactNodeHead, struct Contact* delContact){
+    struct ContactNode* tempNode = NULL;
+    for (; *p2contactNodeHead; p2contactNodeHead = &((*p2contactNodeHead)->_next)){
+        if ((*p2contactNodeHead)->_data == delContact){
+            tempNode = (*p2contactNodeHead);
+            (*p2contactNodeHead) = (*p2contactNodeHead)->_next;
+            free(tempNode);
+            break;
+        }
+    }
+}
+void showSort(const struct ContactNodeHeads* myContacts){
+
+}
+void showContactList(const struct ContactNode * contactNodeHead){
+
+}
+//void delet(void)
+//{
+//
+//
+//    for (i = 0; i < last; i++) {
+//        if (strcmp (dfname_string, A[i].fname) == 0 && strcmp (dlname_string, A[i].lname) == 0 ) {
+//
+//            printf("\nContact was found! Details:");
+//            printf("\n\nCantact %2.2d{",i+1);
+//            printf("\n\t   F.Name:%s\n\t   L.name:%s\n\t   Tele.P:%s\n\t   Cell.P:%s\n\t   }",A[i].fname,A[i].lname,A[i].telep,A[i].cellp);
+//            printf("\n\nAre you sure you want to delete this contact?(y/n)");
+//            ch = get_char_only();
+//            if(ch == 'y'){
+//                for(j = i ; j + 1 < last ; j++)
+//                    A[j] = A[j+1];
+//
+//                last--;
+//                find = 1;
+//                break;
+//            }
+//        }
+//    }
+//    if (find==0)
+//        printf("\t\t\n<<This contact does not exist in this list or program can not delete it.>>");
+//    else
+//        printf("\t\t\n<<Target contact was successfully deleted from list!>>");
+//    printf("\n\n\nPress a key to return main page & continue program|-->");
+//    get_char_only();
+//}
 
 void edit()
 {
