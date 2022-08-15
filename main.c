@@ -6,21 +6,35 @@
 #include <stdbool.h>
 
 #define MAX_FIRST_LAST_SIZE 31
-#define TOTAL_CONTACTS 5
+#define TOTAL_CONTACTS 2
 #define MAX_NUMBER_LEN 15
 #define FAIL -1
+#define ROW_TITLE_OFFSET 8
 
-struct contact{
+struct Contact{
     char fname[MAX_FIRST_LAST_SIZE];
     char lname[MAX_FIRST_LAST_SIZE];
     char telep[MAX_NUMBER_LEN];
     char cellp[MAX_NUMBER_LEN];
 };
-// not global!!
-struct contact A[TOTAL_CONTACTS];
 
-char * get_and_check_line(size_t* len);
-void getline_and_copy_string(char** dest, size_t max_len);
+struct ContactNode{
+    struct Contact * _data;
+    struct ContactNode * _next;
+};
+
+struct ContactNodeHeads{
+    struct ContactNode * _sortFnameHead, * _sortLnameHead , * _sortTelHead, * _sortCellHead,
+                       * _unortedHead;
+};
+// not global!!
+struct Contact A[TOTAL_CONTACTS];
+
+char * get_and_check_line();
+void getline_and_copy_string(char* dest, size_t max_len);
+char get_char_only();
+void print_titles(int y_offset);
+void print_list(int y_offset);
 void clrscr(void);
 void gotoxy(int x, int y);
 void insert(void);
@@ -31,8 +45,7 @@ void searchf(void);
 void searchl(void);
 void searchp(void);
 void searchc(void);
-void list(void);
-void list2(void);
+void list(int y_offset);
 void sort(void);
 void sortf(void);
 void sortl(void);
@@ -43,6 +56,12 @@ int last;
 
 int main()
 {
+    /**
+    char name[5];
+    getline_and_copy_string(name, 5);
+    printf("%s",name);
+    /**/
+    struct ContactNodeHeads myContacts = {NULL,NULL,NULL,NULL,NULL};
     /**/
     bool run = true;
     char n;
@@ -60,8 +79,7 @@ int main()
         printf("\t[7] |--> Help\n");
         printf("\t[8] |--> Exit\n");
         printf("\n\tPlease Enter Your Choice (1-8): ");
-        n = getc(stdin);
-        getc(stdin);
+        n = get_char_only();
         // we should empty buffer here
         switch(n) {
             case '1':
@@ -77,7 +95,8 @@ int main()
                 search();
                 break;
             case '5':
-                list();
+                clrscr();
+                list(4);
                 break;
             case '6':
                 sort();
@@ -91,8 +110,7 @@ int main()
                 break;
             default:
                 printf("\nThere is no item with symbol \"%c\".Please enter a number between 1-8!\nPress any key to continue...",n);
-                getc(stdin);
-                getc(stdin);
+                get_char_only();
                 break;
         }//End of swicth
     }
@@ -103,57 +121,43 @@ int main()
 void insert(void)
 {
     char ans='y';
-    char *string = NULL;
-    size_t len;
-    size_t len_size=0;
     clrscr();
     printf("\nPhone Book12<::>Insert Contacts");
     printf("\n--------------------------------------------------------------------------------");
 
 
     while(ans=='y'){
-        if(last == TOTAL_CONTACTS)
-            last = 0;
+        if(last == TOTAL_CONTACTS) {
+            printf("Too much contacts. The limit is %d.\n", TOTAL_CONTACTS);
+            break;
+        }
         else{
             printf("\n\nData of Contact %2.2d{\n",last+1);
             printf("\n\t  1-F.Name: ");
-            // string = get_and_check_line(&len_size);
-            // len_size = getline(&string,&len,stdin);
-            // strcpy(A[last].fname, string);
-            getline_and_copy_string(&(A[last].fname), MAX_FIRST_LAST_SIZE);
+            getline_and_copy_string(A[last].fname, MAX_FIRST_LAST_SIZE);
 
             printf("\t  2-L.Name: ");
-            // len_size = getline(&string,&len,stdin);
-            // strcpy(A[last].lname, string);
-            getline_and_copy_string(&(A[last].lname), MAX_FIRST_LAST_SIZE);
+            getline_and_copy_string(A[last].lname, MAX_FIRST_LAST_SIZE);
 
             printf("\t  3-Tele.P: ");
-            // len_size = getline(&string,&len,stdin);
-            // strcpy(A[last].telep, string);
-            getline_and_copy_string(&(A[last].telep), MAX_NUMBER_LEN);
+            getline_and_copy_string(A[last].telep, MAX_NUMBER_LEN);
 
             printf("\t  4-Cell.P: ");
-            // len_size = getline(&string,&len,stdin);
-            // strcpy(A[last].cellp, string);
-            getline_and_copy_string(&(A[last].cellp), MAX_NUMBER_LEN);
+            getline_and_copy_string(A[last].cellp, MAX_NUMBER_LEN);
 
             printf("\n|-->Data Recorded!}");
             printf("\n\t\t\tNext Contact?(y/n) Answer:");
-            ans = getc(stdin);
-            getc(stdin);
+            ans = get_char_only();
             last++;
         }
     }
     printf("\n\nYou have inserted ( %d ) contact!\nPress a key to return main page & continue program|-->",last);
-    getc(stdin);
+    get_char_only();
 }
 
 void delet(void)
 {
-    char dfname_string[MAX_FIRST_LAST_SIZE],dlname_string[MAX_FIRST_LAST_SIZE];
-    // char *input = NULL;
-    // size_t len=0;
-    // size_t len_size=0;
+    char dfname_string[MAX_FIRST_LAST_SIZE], dlname_string[MAX_FIRST_LAST_SIZE];
     register int i,j,find=0;
     char ch;
     clrscr();
@@ -161,14 +165,10 @@ void delet(void)
     printf("\n--------------------------------------------------------------------------------");
     printf ("\n::Enter data of the contact that you want delete it,please:");
     printf("\n\n  ::Enter first name: ");
-    // len_size = getline(&input,&len,stdin);
-    // strcpy(dfname_string,input);
-    getline_and_copy_string(&dfname_string, MAX_FIRST_LAST_SIZE);
+    getline_and_copy_string(dfname_string, MAX_FIRST_LAST_SIZE);
 
     printf("\n  ::Enter last name: ");
-    // len_size = getline(&input,&len,stdin);
-    // strcpy(dlname_string,input);
-    getline_and_copy_string(&dlname_string, MAX_FIRST_LAST_SIZE);
+    getline_and_copy_string(dlname_string, MAX_FIRST_LAST_SIZE);
 
     for (i = 0; i < last; i++) {
         if (strcmp (dfname_string, A[i].fname) == 0 && strcmp (dlname_string, A[i].lname) == 0 ) {
@@ -177,10 +177,9 @@ void delet(void)
             printf("\n\nCantact %2.2d{",i+1);
             printf("\n\t   F.Name:%s\n\t   L.name:%s\n\t   Tele.P:%s\n\t   Cell.P:%s\n\t   }",A[i].fname,A[i].lname,A[i].telep,A[i].cellp);
             printf("\n\nAre you sure you want to delete this contact?(y/n)");
-            ch = getc(stdin);
-            getc(stdin);
+            ch = get_char_only();
             if(ch == 'y'){
-                for(j = i ; j <= last ; j++)
+                for(j = i ; j + 1 < last ; j++)
                     A[j] = A[j+1];
 
                 last--;
@@ -194,13 +193,13 @@ void delet(void)
     else
         printf("\t\t\n<<Target contact was successfully deleted from list!>>");
     printf("\n\n\nPress a key to return main page & continue program|-->");
-    getc(stdin);
+    get_char_only();
 }
 
 void edit()
 {
     char input[MAX_FIRST_LAST_SIZE];
-    char *dfname = NULL ,*dlname= NULL;
+    char dfname[MAX_FIRST_LAST_SIZE] ,dlname[MAX_FIRST_LAST_SIZE];
     size_t len=0;
     size_t len_size=0;
     register int i,j,find=0;
@@ -211,11 +210,9 @@ void edit()
     printf ("\n::Enter data of the contact that you want edit it,please:");
 
     printf("\n\n  ::Enter first name: ");
-    // len_size = getline(&dfname,&len,stdin);
-    getline_and_copy_string(&dfname, MAX_FIRST_LAST_SIZE);
+    getline_and_copy_string(dfname, MAX_FIRST_LAST_SIZE);
     printf("\n  ::Enter last name: ");
-    // len_size = getline(&dlname,&len,stdin);
-    getline_and_copy_string(&dlname, MAX_FIRST_LAST_SIZE);
+    getline_and_copy_string(dlname, MAX_FIRST_LAST_SIZE);
 
 
     for (i=0; i < last; i++) {
@@ -224,28 +221,19 @@ void edit()
             printf("\n\nCantact %2.2d{",i+1);
             printf("\n\t   F.Name:%s\n\t   L.name:%s\n\t   Tele.P:%s\n\t   Cell.P:%s\n\t   }",A[i].fname,A[i].lname,A[i].telep,A[i].cellp);
             printf("\n\nDo you want edit it?(y/n) ");
-            ch = getc(stdin);
-            getc(stdin);
+            ch = get_char_only();
             if(ch=='y'){
                 printf("\n::Enter NEW data for this contact...");
                 printf("\n >|Enter new first name: ");
-                getline_and_copy_string(&(A[i].fname), MAX_FIRST_LAST_SIZE);
-                // scanf("%s",input);
-                // strcpy(A[i].fname,input);
+                getline_and_copy_string(A[i].fname, MAX_FIRST_LAST_SIZE);
                 printf(" >|Enter new last name: ");
-                getline_and_copy_string(&(A[i].lname), MAX_FIRST_LAST_SIZE);
-                // scanf("%s",input);
-                // strcpy(A[i].lname,input);
-
+                getline_and_copy_string(A[i].lname, MAX_FIRST_LAST_SIZE);
                 printf(" >|Enter new telephone number: ");
-                // scanf("%s",input);
-                // strcpy(A[i].telep,input);
-                getline_and_copy_string(&(A[i].telep), MAX_NUMBER_LEN);
+                getline_and_copy_string(A[i].telep, MAX_NUMBER_LEN);
 
                 printf(" >|Enter new cellphone number: ");
-                // scanf("%s",input);
-                // strcpy(A[i].cellp,input);
-                getline_and_copy_string(&(A[i].cellp), MAX_NUMBER_LEN);
+
+                getline_and_copy_string(A[i].cellp, MAX_NUMBER_LEN);
 
                 find=1;
                 break;
@@ -257,7 +245,7 @@ void edit()
     else
         printf("\t\t\n<<Target contact was successfully updated!>>");
     printf("\n\n\n   ::Press a key to return main page & continue program|-->");
-    getc(stdin);
+    get_char_only();
 }
 
 void search(void)
@@ -273,8 +261,7 @@ void search(void)
     printf("\t[4] |--> Search by cellphone number\n");
     printf("\t[5] |--> Main Menu\n");
     printf("\n\t::Enter a number (1-5): ");
-    ch = getc(stdin);
-    getc(stdin);
+    ch = get_char_only();
     printf("\n--------------------------------------------------------------------------------");
     switch(ch) {
         case '1':
@@ -297,12 +284,13 @@ void search(void)
 
 void searchf(void)
 {
-    char *fname = NULL;
+    char fname[MAX_FIRST_LAST_SIZE];
     register int i,find=0;
     size_t len=0;
     size_t len_size=0;
     printf("Enter a first name to search:");
-    len_size = getline(&fname,&len,stdin);
+    // len_size = getline(&fname,&len,stdin);
+    getline_and_copy_string(fname, MAX_FIRST_LAST_SIZE);
     for(i = 0;i < last; i++)
         if(strcmp(fname,A[i].fname) == 0) {
             find=1;
@@ -316,18 +304,16 @@ void searchf(void)
         printf("\n\t   F.Name:%s\n\t   L.name:%s\n\t   Tele.P:%s\n\t   Cell.P:%s\n\t   }",A[i].fname,A[i].lname,A[i].telep,A[i].cellp);
     }
     printf("\nPress a key to search another contact.");
-    getc(stdin);
+    get_char_only();
     search();
 }
 
 void searchl(void)
 {
-    char *lname = NULL;
+    char lname[MAX_FIRST_LAST_SIZE];
     register int i,find=0;
-    size_t len=0;
-    size_t len_size=0;
     printf("\n::Enter a last name to search:");
-    len_size = getline(&lname,&len,stdin);
+    getline_and_copy_string(lname, MAX_FIRST_LAST_SIZE);
     for(i = 0;i < last; i++)
         if(strcmp(lname,A[i].lname) == 0) {
             find=1;
@@ -341,23 +327,19 @@ void searchl(void)
         printf("\n\t   F.Name:%s\n\t   L.name:%s\n\t   Tele.P:%s\n\t   Cell.P:%s\n\t   }",A[i].fname,A[i].lname,A[i].telep,A[i].cellp);
     }
     printf("\nPress a key to search another contact.");
-    getc(stdin);
+    get_char_only();
     search();
 }
 
 void searchp(void)
 {
 
-    char *phone = NULL;
+    char phone [MAX_NUMBER_LEN];
     int i,find=0;
-    char telep[5];
-    size_t len=0;
-    size_t len_size=0;
     printf("\n::Enter a phone number to search:");
-    len_size = getline(&phone,&len,stdin);
-    strcpy(telep, phone);
     for(i = 0;i < last; i++)
-        if(strcmp(telep,A[i].telep) == 0) {
+        //if(strcmp(telep,A[i].telep) == 0) {
+        if(strcmp(phone,A[i].telep) == 0){
             find=1;
             break;
         }
@@ -369,24 +351,25 @@ void searchp(void)
         printf("\n\t   F.Name:%s\n\t   L.name:%s\n\t   Tele.P:%s\n\t   Cell.P:%s\n\t   }",A[i].fname,A[i].lname,A[i].telep,A[i].cellp);
     }
     printf("\nPress a key to search another contact.");
-    getc(stdin);
+    get_char_only();
     search();
 }
 
 void searchc(void)
 {
 
-    char *phone = NULL;
-    char cell[5];
+    char phone[MAX_NUMBER_LEN];
+    // char cell[5];
     int i,find=0;
     size_t len=0;
-    size_t len_size=0;
+    // size_t len_size=0;
     printf("\n::Enter a cellphone number to search:");
-    len_size = getline(&phone,&len,stdin);
-    strcpy(cell, phone);
+    // len_size = getline(&phone,&len,stdin);
+    // strcpy(cell, phone);
 
     for(i = 0; i < last; i++)
-        if(strcmp(cell,A[i].cellp) == 0) {
+        //if(strcmp(cell,A[i].cellp) == 0) {
+        if(strcmp(phone,A[i].cellp) == 0) {
             find=1;
             break;
         }
@@ -398,7 +381,7 @@ void searchc(void)
         printf("\n\t   F.Name:%s\n\t   L.name:%s\n\t   Tele.P:%s\n\t   Cell.P:%s\n\t   }",A[i].fname,A[i].lname,A[i].telep,A[i].cellp);
     }
     printf("\nPress a key to search another contact.");
-    getc(stdin);
+    get_char_only();
     search();
 }
 
@@ -415,8 +398,7 @@ void sort(void)
     printf("\t[4] |--> Sort by cellphone number\n");
     printf("\t[5] |--> Main Menu\n");
     printf("\n\t::Enter a number (1-5): ");
-    ch = getc(stdin);
-    getc(stdin);
+    ch = get_char_only();
     printf("\n--------------------------------------------------------------------------------");
     switch(ch){
         case '1':
@@ -438,7 +420,7 @@ void sort(void)
 
 void sortf(void)
 {
-    struct contact B;
+    struct Contact B;
     register int i,j;
     for(i= last-1 ;i > 0; i--)
         for(j = 0; j < i; j++)
@@ -448,15 +430,15 @@ void sortf(void)
                 A[j+1] = B;
             }
     printf("\nplease wait... .Contacts will be sorted by first names.");
-    list2();
+    list(18);
     printf("\n   ::Press any key to sort contact by another form... ");
-    getc(stdin);
+    get_char_only();
     sort();
 }
 
 void sortl(void)
 {
-    struct contact B;
+    struct Contact B;
     register int i,j;
     for(i = last-1 ; i > 0; i--)
         for(j = 0; j < i ; j++)
@@ -466,14 +448,14 @@ void sortl(void)
                 A[j+1] = B;
             }
     printf("\nplease wait... .Contacts will be sorted by last names.");
-    list2();
+    list(18);
     printf("\n   ::Press any key to sort contact by another form... ");
-    getc(stdin);
+    get_char_only();
     sort();
 }
 void sortp(void)
 {
-    struct contact B;
+    struct Contact B;
     register int i,j;
     for(i = last-1; i > 0; i--)
         for(j = 0; j < i; j++)
@@ -483,14 +465,14 @@ void sortp(void)
                 A[j+1] = B;
             }
     printf("\nplease wait... .Contacts will be sorted by telephone numbers.");
-    list2();
+    list(18);
     printf("\n   ::Press any key to sort contact by another form... ");
-    getc(stdin);
+    get_char_only();
     sort();
 }
 void sortc(void)
 {
-    struct contact B;
+    struct Contact B;
     register int i,j;
     for(i = last-1; i > 0; i--)
         for(j = 0; j < i; j++)
@@ -500,77 +482,57 @@ void sortc(void)
                 A[j+1] = B;
             }
     printf("\nPlease wait... .Contacts will be sort by cellphone numbers.");
-    list2();
+    list(18);
     printf("\n   ::Press any key to sort contact by another form... ");
-    getc(stdin);
+    get_char_only();
     sort();
 }
 
-void list()
+//void list(int y_offset)
+//{
+//    register int i;
+//    clrscr();
+//    printf("\nPhone Book12<::>All Contacts List");
+//    printf("\n--------------------------------------------------------------------------------");
+//    gotoxy(1,4);
+//    printf("Row");
+//    gotoxy(9,4);
+//    printf("First Name");
+//    gotoxy(27,4);
+//    printf("Last Name");
+//    gotoxy(44,4);
+//    printf("Telephone");
+//    gotoxy(60,4);
+//    printf("Cellphone");
+//    printf("\n--------------------------------------------------------------------------------");
+//    for(i = 0; i <= last; i++) {
+//        gotoxy(1,i+6);
+//        printf("%3.3d",i+1);
+//        gotoxy(9,i+6);
+//        printf("%s",A[i].fname);
+//        gotoxy(28,i+6);
+//        printf("%s",A[i].lname);
+//        gotoxy(44,i+6);
+//        printf("%s",A[i].telep);
+//        gotoxy(60,i+6);
+//        printf("%s",A[i].cellp);
+//    }
+//
+//    printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+//    printf("\n\t\t    **********End Of list!**********");
+//    printf("\n\n\n   ::Press a key to return main page & continue program.|-->");
+//    get_char_only();
+//}
+
+void list(int y_offset)
 {
-    register int i;
-    clrscr();
     printf("\nPhone Book12<::>All Contacts List");
     printf("\n--------------------------------------------------------------------------------");
-    gotoxy(1,4);
-    printf("Row");
-    gotoxy(9,4);
-    printf("First Name");
-    gotoxy(27,4);
-    printf("Last Name");
-    gotoxy(44,4);
-    printf("Telephone");
-    gotoxy(60,4);
-    printf("Cellphone");
-    printf("\n--------------------------------------------------------------------------------");
-    for(i = 0; i <= last; i++) {
-        gotoxy(1,i+6);
-        printf("%3.3d",i+1);
-        gotoxy(9,i+6);
-        printf("%s",A[i].fname);
-        gotoxy(28,i+6);
-        printf("%s",A[i].lname);
-        gotoxy(44,i+6);
-        printf("%s",A[i].telep);
-        gotoxy(60,i+6);
-        printf("%s",A[i].cellp);
-    }
-
-    printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    printf("\n\t\t    **********End Of list!**********");
+    print_titles(y_offset);
+    print_list( y_offset + 3 );
     printf("\n\n\n   ::Press a key to return main page & continue program.|-->");
-    getc(stdin);
-}
+    get_char_only();
 
-void list2(void)
-{
-    register int i;
-    printf("\n--------------------------------------------------------------------------------");
-    gotoxy(1,18);
-    printf("Row");
-    gotoxy(9,18);
-    printf("First Name");
-    gotoxy(27,18);
-    printf("Last Name");
-    gotoxy(44,18);
-    printf("Telephone");
-    gotoxy(60,18);
-    printf("Cellphone");
-    printf("\n--------------------------------------------------------------------------------");
-    for(i = 0; i < last; i++) {
-        gotoxy(1,i+21);
-        printf("%3.3d",i+1);
-        gotoxy(9,i+21);
-        printf("%s",A[i].fname);
-        gotoxy(27,i+21);
-        printf("%s",A[i].lname);
-        gotoxy(44,i+21);
-        printf("%s",A[i].telep);
-        gotoxy(60,i+21);
-        printf("%s",A[i].cellp);
-    }
-    printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    printf("\n\t\t    **********End Of list!**********");
 }
 
 void help(void)
@@ -587,7 +549,7 @@ void help(void)
     printf("--------------------------------------------------------------------------------\n");
     printf("\nAbout Phonebook12\n *Version: 2.5\n *Valence: 50 Contacts(MAX)\n  *By: Morteza Zakeri (2011-12)");
     printf("\n\nThis program allows you to have a list of your contacts.\nIt also allows you to have your listing added or deleted from your list.\nOther features of this program include:\nSearch,edit,sort & list.\n\n   ::Press a key to return main page & continue program.|-->");
-    getc(stdin);
+    get_char_only();
 }
 
 void clrscr()
@@ -601,9 +563,10 @@ void gotoxy(int x, int y)
 }
 
 //-----------------------------------------------------------------------------
-char * get_and_check_line(size_t* len){
-    char * string;
-    size_t temp_len = getline(&string, len, stdin);
+char * get_and_check_line(){
+    char * string = NULL;
+    size_t len = 0;
+    size_t temp_len = getline(&string, &len, stdin);
     if (temp_len == FAIL) {
         perror("Failed in get line from user");
         exit (EXIT_FAILURE);
@@ -612,14 +575,68 @@ char * get_and_check_line(size_t* len){
 
 }
 //-----------------------------------------------------------------------------
-void getline_and_copy_string(char** dest, size_t max_len){
+void getline_and_copy_string(char* dest, size_t max_len){
 /*
 
  */
-    memset(*dest, '\0', max_len - 1);
-    size_t len;
-    char *string = get_and_check_line(&len);
-    *dest = strncpy(*dest, string, max_len - 1);
+    memset(dest, '\0', max_len);
+    size_t len = 0;
+    char *string = get_and_check_line();
+    dest = strncpy(dest, string, max_len-1);
+    dest[max_len-1] = '\0';
+    free(string);
+    string = NULL;
 
+}
 
+char get_char_only(){
+    char ch = (char)getc(stdin);
+    if (ch != '\n') {
+        char *string = get_and_check_line();
+        free(string);
+    }
+    return ch;
+}
+
+void print_titles(int y_offset){
+    int x_offset = 1;
+    printf("\n--------------------------------------------------------------------------------");
+    gotoxy(x_offset,y_offset);
+    printf("Row");
+    x_offset += ROW_TITLE_OFFSET;
+    gotoxy(x_offset,y_offset);
+    printf("First Name");
+    x_offset+=MAX_FIRST_LAST_SIZE;
+    gotoxy(x_offset,y_offset);
+    printf("Last Name");
+    x_offset+=MAX_FIRST_LAST_SIZE;
+    gotoxy(x_offset,y_offset);
+    printf("Telephone");
+    x_offset += MAX_NUMBER_LEN;
+    gotoxy(x_offset,y_offset);
+    printf("Cellphone");
+    printf("\n--------------------------------------------------------------------------------");
+}
+
+void print_list(int y_offset){
+    register int i;
+    int x_offset = 1;
+    for(i = 0; i < last; i++, x_offset = 1) {
+        gotoxy(x_offset,i + y_offset);
+        printf("%3.3d",i+1);
+        x_offset += ROW_TITLE_OFFSET;
+        gotoxy(x_offset,i + y_offset);
+        printf("%s",A[i].fname);
+        x_offset += MAX_FIRST_LAST_SIZE;
+        gotoxy(x_offset,i + y_offset);
+        printf("%s",A[i].lname);
+        x_offset += MAX_FIRST_LAST_SIZE;
+        gotoxy(x_offset,i + y_offset);
+        printf("%s",A[i].telep);
+        x_offset+=MAX_NUMBER_LEN;
+        gotoxy(x_offset,i + y_offset);
+        printf("%s",A[i].cellp);
+    }
+    printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    printf("\n\t\t    **********End Of list!**********");
 }
