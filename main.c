@@ -20,8 +20,8 @@ struct Contact{
 };
 
 struct ContactNode{
-    struct Contact * _data;
     struct ContactNode * _next;
+    struct Contact * _data;
 };
 
 struct ContactNodeHeads{
@@ -277,10 +277,10 @@ void clearContacts(struct ContactNode *contactNodeHead){
 
 }
 void clearContactsNodes(struct ContactNode **p2contactNodeHead){
-    for(struct ContactNode ** tempP2Head = p2contactNodeHead;
-        *p2contactNodeHead;
-        p2contactNodeHead = tempP2Head) {
-        tempP2Head = &((*tempP2Head)->_next);
+    struct ContactNode * tempCNode = NULL;
+    for(tempCNode = *p2contactNodeHead; (*p2contactNodeHead) != NULL;
+        p2contactNodeHead = &tempCNode) {
+        tempCNode = ((*p2contactNodeHead)->_next);
         //(*p2contactNodeHead)->_data = NULL;
         free(*p2contactNodeHead);
         *p2contactNodeHead = NULL;
