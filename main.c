@@ -50,6 +50,7 @@ void clearContactsNodes(struct ContactNode **p2contactNodeHead);
 void delete(struct ContactNodeHeads*);
 void deleteContact(struct ContactNodeHeads* myContacts, struct Contact* delContact);
 void deleteContactNodesFromList(struct ContactNode **p2contactNodeHead, struct Contact* delContact);
+void edit(struct ContactNodeHeads* myContacts);
 void showSort(const struct ContactNodeHeads* myContacts);
 void showContactList(const struct ContactNode * contactNodeHead);
 void list(int y_offset);
@@ -342,6 +343,49 @@ void deleteContactNodesFromList(struct ContactNode **p2contactNodeHead, struct C
         }
     }
 }
+
+void edit(struct ContactNodeHeads* myContacts){
+    char dfname[MAX_FIRST_LAST_SIZE] ,dlname[MAX_FIRST_LAST_SIZE];
+    register int i, find=0;
+    char ch;
+    struct ContactNode* tempHead = NULL;
+    struct Contact * newContact = NULL;
+    clrscr();
+    printf("\nPhone Book12<::>Edit Contacts");
+    printf("\n--------------------------------------------------------------------------------");
+    printf ("\n::Enter data of the contact that you want edit it,please:");
+
+    printf("\n\n  ::Enter first name: ");
+    getline_and_copy_string(dfname, MAX_FIRST_LAST_SIZE);
+    printf("\n  ::Enter last name: ");
+    getline_and_copy_string(dlname, MAX_FIRST_LAST_SIZE);
+
+
+    for (tempHead = myContacts->_sortFnameHead; tempHead ; tempHead = tempHead->_next, i++) {
+        if (strcmp(dfname, tempHead->_data->fname) == 0 &&
+            strcmp(dlname, tempHead->_data->lname) == 0) {
+            printf("\nContact found! Details:");
+            printf("\n\nCantact %2.2d{",i+1);
+            printf("\n\t   F.Name:%s\n\t   L.name:%s\n\t   Tele.P:%s\n\t   Cell.P:%s\n\t   }",
+                   tempHead->_data->fname, tempHead->_data->lname, tempHead->_data->telep, tempHead->_data->cellp);
+            printf("\n\nDo you want edit it?(y/n) ");
+            ch = get_char_only();
+            if(ch=='y'){
+                deleteContact(myContacts, tempHead->_data);
+                newContact = createContact();
+                addToLinkedLists(myContacts, newContact);
+                find=1;
+                break;
+            }
+        }
+    }
+    if (find==0)
+        printf("\t\t\n<<This contact does not exist or you chose not to Edit it.>>");
+    else
+        printf("\t\t\n<<Target contact was successfully updated!>>");
+    printf("\n\n\n   ::Press a key to return main page & continue program|-->");
+    get_char_only();
+}
 void showSort(const struct ContactNodeHeads* myContacts){
 
 }
@@ -378,57 +422,57 @@ void showContactList(const struct ContactNode * contactNodeHead){
 //    get_char_only();
 //}
 
-void edit()
-{
-    char input[MAX_FIRST_LAST_SIZE];
-    char dfname[MAX_FIRST_LAST_SIZE] ,dlname[MAX_FIRST_LAST_SIZE];
-    size_t len=0;
-    size_t len_size=0;
-    register int i,j,find=0;
-    char ch;
-    clrscr();
-    printf("\nPhone Book12<::>Edit Contacts");
-    printf("\n--------------------------------------------------------------------------------");
-    printf ("\n::Enter data of the contact that you want edit it,please:");
-
-    printf("\n\n  ::Enter first name: ");
-    getline_and_copy_string(dfname, MAX_FIRST_LAST_SIZE);
-    printf("\n  ::Enter last name: ");
-    getline_and_copy_string(dlname, MAX_FIRST_LAST_SIZE);
-
-
-    for (i=0; i < last; i++) {
-        if (strcmp (dfname, A[i].fname) == 0 && strcmp (dlname, A[i].lname) == 0 ) {
-            printf("\nContact found! Details:");
-            printf("\n\nCantact %2.2d{",i+1);
-            printf("\n\t   F.Name:%s\n\t   L.name:%s\n\t   Tele.P:%s\n\t   Cell.P:%s\n\t   }",A[i].fname,A[i].lname,A[i].telep,A[i].cellp);
-            printf("\n\nDo you want edit it?(y/n) ");
-            ch = get_char_only();
-            if(ch=='y'){
-                printf("\n::Enter NEW data for this contact...");
-                printf("\n >|Enter new first name: ");
-                getline_and_copy_string(A[i].fname, MAX_FIRST_LAST_SIZE);
-                printf(" >|Enter new last name: ");
-                getline_and_copy_string(A[i].lname, MAX_FIRST_LAST_SIZE);
-                printf(" >|Enter new telephone number: ");
-                getline_and_copy_string(A[i].telep, MAX_NUMBER_LEN);
-
-                printf(" >|Enter new cellphone number: ");
-
-                getline_and_copy_string(A[i].cellp, MAX_NUMBER_LEN);
-
-                find=1;
-                break;
-            }
-        }
-    }
-    if (find==0)
-        printf("\t\t\n<<This contact does not exist or you chose not to Edit it.>>");
-    else
-        printf("\t\t\n<<Target contact was successfully updated!>>");
-    printf("\n\n\n   ::Press a key to return main page & continue program|-->");
-    get_char_only();
-}
+//void edit()
+//{
+//    char input[MAX_FIRST_LAST_SIZE];
+//    char dfname[MAX_FIRST_LAST_SIZE] ,dlname[MAX_FIRST_LAST_SIZE];
+//    size_t len=0;
+//    size_t len_size=0;
+//    register int i,j,find=0;
+//    char ch;
+//    clrscr();
+//    printf("\nPhone Book12<::>Edit Contacts");
+//    printf("\n--------------------------------------------------------------------------------");
+//    printf ("\n::Enter data of the contact that you want edit it,please:");
+//
+//    printf("\n\n  ::Enter first name: ");
+//    getline_and_copy_string(dfname, MAX_FIRST_LAST_SIZE);
+//    printf("\n  ::Enter last name: ");
+//    getline_and_copy_string(dlname, MAX_FIRST_LAST_SIZE);
+//
+//
+//    for (i=0; i < last; i++) {
+//        if (strcmp (dfname, A[i].fname) == 0 && strcmp (dlname, A[i].lname) == 0 ) {
+//            printf("\nContact found! Details:");
+//            printf("\n\nCantact %2.2d{",i+1);
+//            printf("\n\t   F.Name:%s\n\t   L.name:%s\n\t   Tele.P:%s\n\t   Cell.P:%s\n\t   }",A[i].fname,A[i].lname,A[i].telep,A[i].cellp);
+//            printf("\n\nDo you want edit it?(y/n) ");
+//            ch = get_char_only();
+//            if(ch=='y'){
+//                printf("\n::Enter NEW data for this contact...");
+//                printf("\n >|Enter new first name: ");
+//                getline_and_copy_string(A[i].fname, MAX_FIRST_LAST_SIZE);
+//                printf(" >|Enter new last name: ");
+//                getline_and_copy_string(A[i].lname, MAX_FIRST_LAST_SIZE);
+//                printf(" >|Enter new telephone number: ");
+//                getline_and_copy_string(A[i].telep, MAX_NUMBER_LEN);
+//
+//                printf(" >|Enter new cellphone number: ");
+//
+//                getline_and_copy_string(A[i].cellp, MAX_NUMBER_LEN);
+//
+//                find=1;
+//                break;
+//            }
+//        }
+//    }
+//    if (find==0)
+//        printf("\t\t\n<<This contact does not exist or you chose not to Edit it.>>");
+//    else
+//        printf("\t\t\n<<Target contact was successfully updated!>>");
+//    printf("\n\n\n   ::Press a key to return main page & continue program|-->");
+//    get_char_only();
+//}
 
 void search(void)
 {
@@ -490,82 +534,82 @@ void searchf(void)
     search();
 }
 
-void searchl(void)
-{
-    char lname[MAX_FIRST_LAST_SIZE];
-    register int i,find=0;
-    printf("\n::Enter a last name to search:");
-    getline_and_copy_string(lname, MAX_FIRST_LAST_SIZE);
-    for(i = 0;i < last; i++)
-        if(strcmp(lname,A[i].lname) == 0) {
-            find=1;
-            break;
-        }
-    if(find==0)
-        printf("\t\n<<Not Find!There is not contact with tish name in phone book.>>");
-    else {
-        printf("\t\n<<Target contact found! Details:>>");
-        printf("\n\nCantact %2.2d{",i+1);
-        printf("\n\t   F.Name:%s\n\t   L.name:%s\n\t   Tele.P:%s\n\t   Cell.P:%s\n\t   }",A[i].fname,A[i].lname,A[i].telep,A[i].cellp);
-    }
-    printf("\nPress a key to search another contact.");
-    get_char_only();
-    search();
-}
-
-void searchp(void)
-{
-
-    char phone [MAX_NUMBER_LEN];
-    int i,find=0;
-    printf("\n::Enter a phone number to search:");
-    for(i = 0;i < last; i++)
-        //if(strcmp(telep,A[i].telep) == 0) {
-        if(strcmp(phone,A[i].telep) == 0){
-            find=1;
-            break;
-        }
-    if(find==0)
-        printf("\t\n<<Not Found!There is not contact with tish phone number  in phone book.>>");
-    else{
-        printf("\t\n<<Target contact found! Details:>>");
-        printf("\n\nCantact %2.2d{",i+1);
-        printf("\n\t   F.Name:%s\n\t   L.name:%s\n\t   Tele.P:%s\n\t   Cell.P:%s\n\t   }",A[i].fname,A[i].lname,A[i].telep,A[i].cellp);
-    }
-    printf("\nPress a key to search another contact.");
-    get_char_only();
-    search();
-}
-
-void searchc(void)
-{
-
-    char phone[MAX_NUMBER_LEN];
-    // char cell[5];
-    int i,find=0;
-    size_t len=0;
-    // size_t len_size=0;
-    printf("\n::Enter a cellphone number to search:");
-    // len_size = getline(&phone,&len,stdin);
-    // strcpy(cell, phone);
-
-    for(i = 0; i < last; i++)
-        //if(strcmp(cell,A[i].cellp) == 0) {
-        if(strcmp(phone,A[i].cellp) == 0) {
-            find=1;
-            break;
-        }
-    if(find==0)
-        printf("\t\n<<Not Find!There is not contact with tish cellphone number in phone book.>>");
-    else {
-        printf("\t\n<<Target contact found! Details:>>");
-        printf("\n\nCantact %2.2d{",i+1);
-        printf("\n\t   F.Name:%s\n\t   L.name:%s\n\t   Tele.P:%s\n\t   Cell.P:%s\n\t   }",A[i].fname,A[i].lname,A[i].telep,A[i].cellp);
-    }
-    printf("\nPress a key to search another contact.");
-    get_char_only();
-    search();
-}
+//void searchl(void)
+//{
+//    char lname[MAX_FIRST_LAST_SIZE];
+//    register int i,find=0;
+//    printf("\n::Enter a last name to search:");
+//    getline_and_copy_string(lname, MAX_FIRST_LAST_SIZE);
+//    for(i = 0;i < last; i++)
+//        if(strcmp(lname,A[i].lname) == 0) {
+//            find=1;
+//            break;
+//        }
+//    if(find==0)
+//        printf("\t\n<<Not Find!There is not contact with tish name in phone book.>>");
+//    else {
+//        printf("\t\n<<Target contact found! Details:>>");
+//        printf("\n\nCantact %2.2d{",i+1);
+//        printf("\n\t   F.Name:%s\n\t   L.name:%s\n\t   Tele.P:%s\n\t   Cell.P:%s\n\t   }",A[i].fname,A[i].lname,A[i].telep,A[i].cellp);
+//    }
+//    printf("\nPress a key to search another contact.");
+//    get_char_only();
+//    search();
+//}
+//
+//void searchp(void)
+//{
+//
+//    char phone [MAX_NUMBER_LEN];
+//    int i,find=0;
+//    printf("\n::Enter a phone number to search:");
+//    for(i = 0;i < last; i++)
+//        //if(strcmp(telep,A[i].telep) == 0) {
+//        if(strcmp(phone,A[i].telep) == 0){
+//            find=1;
+//            break;
+//        }
+//    if(find==0)
+//        printf("\t\n<<Not Found!There is not contact with tish phone number  in phone book.>>");
+//    else{
+//        printf("\t\n<<Target contact found! Details:>>");
+//        printf("\n\nCantact %2.2d{",i+1);
+//        printf("\n\t   F.Name:%s\n\t   L.name:%s\n\t   Tele.P:%s\n\t   Cell.P:%s\n\t   }",A[i].fname,A[i].lname,A[i].telep,A[i].cellp);
+//    }
+//    printf("\nPress a key to search another contact.");
+//    get_char_only();
+//    search();
+//}
+//
+//void searchc(void)
+//{
+//
+//    char phone[MAX_NUMBER_LEN];
+//    // char cell[5];
+//    int i,find=0;
+//    size_t len=0;
+//    // size_t len_size=0;
+//    printf("\n::Enter a cellphone number to search:");
+//    // len_size = getline(&phone,&len,stdin);
+//    // strcpy(cell, phone);
+//
+//    for(i = 0; i < last; i++)
+//        //if(strcmp(cell,A[i].cellp) == 0) {
+//        if(strcmp(phone,A[i].cellp) == 0) {
+//            find=1;
+//            break;
+//        }
+//    if(find==0)
+//        printf("\t\n<<Not Find!There is not contact with tish cellphone number in phone book.>>");
+//    else {
+//        printf("\t\n<<Target contact found! Details:>>");
+//        printf("\n\nCantact %2.2d{",i+1);
+//        printf("\n\t   F.Name:%s\n\t   L.name:%s\n\t   Tele.P:%s\n\t   Cell.P:%s\n\t   }",A[i].fname,A[i].lname,A[i].telep,A[i].cellp);
+//    }
+//    printf("\nPress a key to search another contact.");
+//    get_char_only();
+//    search();
+//}
 
 void sort(void)
 {
